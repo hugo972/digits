@@ -1,0 +1,8 @@
+[package]
+name = "digit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nannou = "0.19.0"
+pixel-canvas = "0.2.3"
