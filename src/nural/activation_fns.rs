@@ -1,5 +1,4 @@
-﻿use nannou::prelude::Float;
-use std::f64::consts::E;
+﻿use std::f64::consts::E;
 
 pub struct ActivationFn<'a> {
     pub dx: &'a dyn Fn(f64) -> f64,

@@ -1,6 +1,4 @@
-﻿use nannou::prelude::Float;
-
-pub struct LossFn<'a> {
+﻿pub struct LossFn<'a> {
     pub dx: &'a dyn Fn(&[f64], &[f64]) -> Vec<f64>,
     pub fx: &'a dyn Fn(&[f64], &[f64]) -> f64,
 }

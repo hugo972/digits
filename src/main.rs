@@ -7,6 +7,10 @@ mod nural;
 mod utils;
 
 fn main() {
+    test_xor_network()
+}
+
+fn test_digit_network() {
     let mut nural_network = NuralNetwork::new(
         vec![
             Box::new(TransformLayer::new(28, 40)),
@@ -88,4 +92,13 @@ pub fn test_xor_network() {
     println!("0 xor 1 = {:?}", nural_network.predict(&[0.0, 1.0]));
     println!("1 xor 0 = {:?}", nural_network.predict(&[1.0, 0.0]));
     println!("1 xor 1 = {:?}", nural_network.predict(&[1.0, 1.0]));
+
+    let serialized = serde_json::to_string_pretty(&nural_network).unwrap();
+    let deserialized_nural_network: NuralNetwork = serde_json::from_str(&serialized).unwrap();
+
+    println!("deserialized trained results:");
+    println!("0 xor 0 = {:?}", deserialized_nural_network.predict(&[0.0, 0.0]));
+    println!("0 xor 1 = {:?}", deserialized_nural_network.predict(&[0.0, 1.0]));
+    println!("1 xor 0 = {:?}", deserialized_nural_network.predict(&[1.0, 0.0]));
+    println!("1 xor 1 = {:?}", deserialized_nural_network.predict(&[1.0, 1.0]));
 }

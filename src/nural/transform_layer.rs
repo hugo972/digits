@@ -1,6 +1,9 @@
-﻿use crate::nural::nural_network::NuralNetworkLayer;
+﻿use std::any::Any;
+use serde::{Deserialize, Serialize};
+use crate::nural::nural_network_layer::NuralNetworkLayer;
 use crate::utils::matrix::Matrix;
 
+#[derive(Deserialize, Serialize)]
 pub struct TransformLayer {
     bias: Matrix,
     weights: Matrix,
@@ -16,6 +19,10 @@ impl TransformLayer {
 }
 
 impl NuralNetworkLayer for TransformLayer {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn backward(&mut self, input: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64> {
         let output_gradient_mx = Matrix::from(&output_gradient).transpose();
         let weights_gradient_mx = output_gradient_mx.mul(&Matrix::from(&input));

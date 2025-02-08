@@ -1,11 +1,15 @@
-﻿use crate::nural::activation_fns::*;
-use crate::nural::nural_network::NuralNetworkLayer;
+﻿use std::any::Any;
+use serde::{Deserialize, Serialize};
+use crate::nural::activation_fns::*;
+use crate::nural::nural_network_layer::NuralNetworkLayer;
 use crate::utils::matrix::Matrix;
 
+#[derive(Deserialize, Serialize)]
 pub struct ActivationLayer {
     kind: ActivationLayerKind,
 }
 
+#[derive(Deserialize, Serialize)]
 pub enum ActivationLayerKind {
     Sigmoid,
     Tanh,
@@ -25,6 +29,10 @@ impl ActivationLayer {
 }
 
 impl NuralNetworkLayer for ActivationLayer {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn backward(
         &mut self,
         input: &[f64],

@@ -1,16 +1,15 @@
 ﻿use crate::nural::loss_fns::{LossFn, BINARY_CROSS_ENTROPY, MSE};
+use crate::nural::nural_network_layer::NuralNetworkLayer;
+use serde::{Deserialize, Serialize};
 
+#[derive(Deserialize, Serialize)]
 pub struct NuralNetwork {
     layers: Vec<Box<dyn NuralNetworkLayer>>,
     learning_rate: f64,
     loss_kind: NuralNetworkLossKind,
 }
 
-pub trait NuralNetworkLayer {
-    fn backward(&mut self, input: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64>;
-    fn forward(&self, input: &[f64]) -> Vec<f64>;
-}
-
+#[derive(Deserialize, Serialize)]
 pub enum NuralNetworkLossKind {
     BinaryCrossEntropy,
     Mse,
@@ -31,10 +30,6 @@ impl NuralNetwork {
 
     pub fn predict(&self, input: &[f64]) -> Vec<f64> {
         self.forward(input).last().unwrap().clone()
-    }
-
-    pub fn save_to_file(&self) {
-
     }
 
     pub fn train(&mut self, data: &[(Vec<f64>, Vec<f64>)], epochs: usize) -> f64 {
