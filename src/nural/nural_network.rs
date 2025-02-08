@@ -28,8 +28,18 @@ impl NuralNetwork {
         }
     }
 
+    pub fn load_file(file_path: &str) -> Result<NuralNetwork, std::io::Error> {
+        let serialized_bytes = std::fs::read(file_path)?;
+        Ok(serde_cbor::from_slice::<NuralNetwork>(&serialized_bytes).unwrap())
+    }
+
     pub fn predict(&self, input: &[f64]) -> Vec<f64> {
         self.forward(input).last().unwrap().clone()
+    }
+
+    pub fn save_file(&self, file_path: &str) -> Result<(), std::io::Error> {
+        let serialized_bytes = serde_cbor::to_vec(self).unwrap();
+        std::fs::write(file_path, serialized_bytes)
     }
 
     pub fn train(&mut self, data: &[(Vec<f64>, Vec<f64>)], epochs: usize) -> f64 {

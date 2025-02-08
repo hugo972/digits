@@ -8,7 +8,6 @@ pub struct Matrix {
 }
 
 impl Matrix {
-    #[allow(dead_code)]
     pub fn new(rows: usize, cols: usize) -> Matrix {
         Matrix {
             cols,
