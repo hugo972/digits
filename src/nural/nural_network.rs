@@ -65,6 +65,8 @@ impl NuralNetwork {
                     gradient = layer.backward(input, &gradient, self.learning_rate);
                 }
             }
+
+            println!("epoch {}/{}", epoch + 1, epochs);
         }
 
         error / data.len() as f64
