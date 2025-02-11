@@ -4,6 +4,7 @@ use crate::nural::activation_layer::{ActivationLayer, ActivationLayerKind};
 use crate::nural::nural_network::{NuralNetwork, NuralNetworkLossKind};
 use crate::nural::transform_layer::TransformLayer;
 use crate::utils::bin::{get_bin_digits, get_digits, print_bin_digit};
+use crate::utils::shuffle_iter::ShuffleIterExt;
 
 mod nural;
 mod utils;
@@ -11,7 +12,6 @@ mod utils;
 fn main() {
     digit_network()
 }
-
 
 fn digit_network() {
     let digits = [
@@ -27,12 +27,12 @@ fn digit_network() {
         get_digits("./data/data9.bin"),
     ];
 
-    // learn(&digits);
+    learn(&digits);
 
     let nural_network = NuralNetwork::load_file("./data/digits.tnn").unwrap();
 
-    let digit = 5;
-    let digit_variant = 534;
+    let digit = 3;
+    let digit_variant = 720;
     let digit_data = &digits[digit][digit_variant];
 
     let output = nural_network.predict(
@@ -42,7 +42,8 @@ fn digit_network() {
             .collect::<Vec<f64>>()
             .as_slice(),
     );
-    println!("Prediction: {:?}", output);
+
+    println!("Prediction: {:?}", output.iter().enumerate().max_by_key(|(_, d)| (**d * 100.0) as i32 ).unwrap().0);
 
     fn learn(digits: &[Vec<Vec<u8>>; 10]) {
         let mut nural_network = NuralNetwork::new(
@@ -65,7 +66,7 @@ fn digit_network() {
 
                 digit_data
                     .iter()
-                    .take(10)
+                    .take(500)
                     .map(|d| {
                         (
                             d.iter()
@@ -78,6 +79,7 @@ fn digit_network() {
                     })
                     .collect::<Vec<_>>()
             })
+            .shuffle()
             .collect::<Vec<_>>();
 
         nural_network.train(data.as_slice(), 100);
@@ -170,6 +172,7 @@ fn bin_digit_network() {
 
                 digit_data
                     .iter()
+                    .take(500)
                     .map(|d| {
                         (
                             d.iter()
@@ -182,6 +185,7 @@ fn bin_digit_network() {
                     })
                     .collect::<Vec<_>>()
             })
+            .shuffle()
             .collect::<Vec<_>>();
 
         nural_network.train(data.as_slice(), 100);
