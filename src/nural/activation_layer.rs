@@ -11,6 +11,7 @@ pub struct ActivationLayer {
 
 #[derive(Deserialize, Serialize)]
 pub enum ActivationLayerKind {
+    ReLu,
     Sigmoid,
     Tanh,
 }
@@ -22,8 +23,9 @@ impl ActivationLayer {
 
     fn activation_fn(&self) -> ActivationFn {
         match self.kind {
-            ActivationLayerKind::Tanh => TANH,
+            ActivationLayerKind::ReLu => RELU,
             ActivationLayerKind::Sigmoid => SIGMOID,
+            ActivationLayerKind::Tanh => TANH,
         }
     }
 }

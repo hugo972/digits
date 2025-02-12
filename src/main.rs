@@ -36,7 +36,7 @@ fn digit_network() {
         let digit_variant = rand::random_range(501..1000);
         let digit_data = digits[digit][digit_variant]
             .iter()
-            .map(|&d| d as f64)
+            .map(|&d| d as f64 / 255.0)
             .collect::<Vec<f64>>();
 
         let output = nural_network.predict(digit_data.as_slice());
@@ -48,21 +48,24 @@ fn digit_network() {
             .unwrap()
             .0;
         println!(
-            "Actual: {} [{}] Prediction: {} {:?}",
-            digit, digit_variant, predicted_digit, output
+            "Actual: {} [{}] Prediction: {}",
+            digit, digit_variant, predicted_digit
         );
     }
 
     fn learn(digits: &[Vec<Vec<u8>>; 10]) {
         let mut nural_network = NuralNetwork::new(
             vec![
-                Box::new(TransformLayer::new(28 * 28, 40)),
-                Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
-                Box::new(TransformLayer::new(40, 10)),
-                Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
+                Box::new(TransformLayer::new(28 * 28, 128)),
+                Box::new(ActivationLayer::new(ActivationLayerKind::ReLu)),
+                Box::new(TransformLayer::new(128, 64)),
+                Box::new(ActivationLayer::new(ActivationLayerKind::Sigmoid)),
+                Box::new(TransformLayer::new(64, 32)),
+                Box::new(ActivationLayer::new(ActivationLayerKind::Sigmoid)),
+                Box::new(TransformLayer::new(32, 10)),
             ],
             0.1,
-            NuralNetworkLossKind::Mse,
+            NuralNetworkLossKind::BinaryCrossEntropy,
         );
 
         let data = digits
@@ -78,7 +81,7 @@ fn digit_network() {
                     .map(|d| {
                         (
                             d.iter()
-                                .map(|&d| d as f64)
+                                .map(|&d| d as f64 / 255.0)
                                 .collect::<Vec<f64>>()
                                 .as_slice()
                                 .to_owned(),
@@ -90,7 +93,9 @@ fn digit_network() {
             .shuffle()
             .collect::<Vec<_>>();
 
-        nural_network.train(data.as_slice(), 100);
+        let error = nural_network.train(data.as_slice(), 5);
+        println!("train completed [error={}]", error);
+
         nural_network.save_file("./data/digits.tnn").unwrap();
     }
 }

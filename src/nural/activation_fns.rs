@@ -5,6 +5,11 @@ pub struct ActivationFn<'a> {
     pub fx: &'a dyn Fn(f64) -> f64,
 }
 
+pub const RELU: ActivationFn = ActivationFn {
+    dx: &|x| if x > 0.0 { 1.0 } else { 0.0 },
+    fx: &|x| if x > 0.0 { x } else { 0.0 },
+};
+
 pub const SIGMOID: ActivationFn = ActivationFn {
     dx: &|x| {
         let sigmoid = 1.0 / (1.0 + E.powf(-x));
