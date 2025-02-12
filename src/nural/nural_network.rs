@@ -1,6 +1,7 @@
 ﻿use crate::nural::loss_fns::{LossFn, BINARY_CROSS_ENTROPY, MSE};
 use crate::nural::nural_network_layer::NuralNetworkLayer;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 #[derive(Deserialize, Serialize)]
 pub struct NuralNetwork {
@@ -86,5 +87,12 @@ impl NuralNetwork {
             NuralNetworkLossKind::BinaryCrossEntropy => BINARY_CROSS_ENTROPY,
             NuralNetworkLossKind::Mse => MSE,
         }
+    }
+}
+
+impl Display for NuralNetwork {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let serialized_nural_network = serde_json::to_string_pretty(&self).unwrap();
+        write!(f, "Nural Network: {}", serialized_nural_network)
     }
 }

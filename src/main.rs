@@ -27,28 +27,36 @@ fn digit_network() {
         get_digits("./data/data9.bin"),
     ];
 
-    learn(&digits);
+    //learn(&digits);
 
     let nural_network = NuralNetwork::load_file("./data/digits.tnn").unwrap();
+    println!("{}", nural_network);
 
-    let digit = 3;
-    let digit_variant = 720;
-    let digit_data = &digits[digit][digit_variant];
-
-    let output = nural_network.predict(
-        digit_data
+    for digit in 0..=9 {
+        let digit_variant = rand::random_range(501..1000);
+        let digit_data = digits[digit][digit_variant]
             .iter()
             .map(|&d| d as f64)
-            .collect::<Vec<f64>>()
-            .as_slice(),
-    );
+            .collect::<Vec<f64>>();
 
-    println!("Prediction: {:?}", output.iter().enumerate().max_by_key(|(_, d)| (**d * 100.0) as i32 ).unwrap().0);
+        let output = nural_network.predict(digit_data.as_slice());
+
+        let predicted_digit = output
+            .iter()
+            .enumerate()
+            .max_by_key(|(_, d)| (**d * 100.0) as i32)
+            .unwrap()
+            .0;
+        println!(
+            "Actual: {} [{}] Prediction: {} {:?}",
+            digit, digit_variant, predicted_digit, output
+        );
+    }
 
     fn learn(digits: &[Vec<Vec<u8>>; 10]) {
         let mut nural_network = NuralNetwork::new(
             vec![
-                Box::new(TransformLayer::new(28*28, 40)),
+                Box::new(TransformLayer::new(28 * 28, 40)),
                 Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
                 Box::new(TransformLayer::new(40, 10)),
                 Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
@@ -87,7 +95,6 @@ fn digit_network() {
     }
 }
 
-
 fn bin_digit_network() {
     let digits = [
         get_bin_digits("./data/data0.bin"),
@@ -110,7 +117,7 @@ fn bin_digit_network() {
     let digit_variant = 534;
     let digit_data = digits[digit][digit_variant];
 
-   /* let digit_data = [
+    /* let digit_data = [
         0b0000000000000000000000000000,
         0b0000001110000000011100000000,
         0b0000011110000001111000000000,
