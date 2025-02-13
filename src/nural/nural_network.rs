@@ -43,20 +43,17 @@ impl NuralNetwork {
         std::fs::write(file_path, serialized_bytes)
     }
 
-    pub fn train(&mut self, data: &[(Vec<f64>, Vec<f64>)], epochs: usize) -> f64 {
-        let mut error = 0.0;
-
+    pub fn train(&mut self, data: &[(Vec<f64>, Vec<f64>)], epochs: usize) {
         for epoch in 0..epochs {
+            let mut error = 0.0;
+
             for (input, expected_output) in data.iter() {
                 let outputs = self.forward(input);
                 let output = outputs.last().unwrap();
 
-                if epoch == epochs - 1 {
-                    error += (self.loss_fn().fx)(&output, &expected_output);
-                }
+                error += (self.loss_fn().fx)(&output, &expected_output);
 
                 let mut gradient = (self.loss_fn().dx)(&output, &expected_output);
-
                 for (layer, input) in self
                     .layers
                     .iter_mut()
@@ -67,10 +64,13 @@ impl NuralNetwork {
                 }
             }
 
-            println!("epoch {}/{}", epoch + 1, epochs);
+            println!(
+                "epoch {}/{} error: {}",
+                epoch + 1,
+                epochs,
+                error / data.len() as f64
+            );
         }
-
-        error / data.len() as f64
     }
 
     fn forward(&self, input: &[f64]) -> Vec<Vec<f64>> {

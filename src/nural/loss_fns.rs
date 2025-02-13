@@ -4,46 +4,46 @@
 }
 
 pub const BINARY_CROSS_ENTROPY: LossFn = LossFn {
-    dx: &|predicted, actual| {
+    dx: &|actual, expected| {
         actual
             .iter()
-            .zip(predicted.iter())
-            .map(|(actual_val, predicted_val)| {
-                ((1.0 - actual_val) / (1.0 - predicted_val) - actual_val / predicted_val)
+            .zip(expected.iter())
+            .map(|(actual_val, expected_val)| {
+                ((1.0 - actual_val) / (1.0 - expected_val) - actual_val / expected_val)
                     / actual.len() as f64
             })
             .collect()
     },
-    fx: &|predicted, actual| {
+    fx: &|actual, expected| {
         let sum =
             actual
                 .iter()
-                .zip(predicted.iter())
-                .fold(0.0, |val, (&actual_val, &predicted_val)| {
-                    val - actual_val * predicted_val.log(10.0)
-                        - (1.0 - actual_val) * (1.0 - predicted_val).log(10.0)
+                .zip(expected.iter())
+                .fold(0.0, |val, (&actual_val, &expected_val)| {
+                    val - actual_val * expected_val.log(10.0)
+                        - (1.0 - actual_val) * (1.0 - expected_val).log(10.0)
                 });
         sum / (actual.len() as f64)
     },
 };
 
 pub const MSE: LossFn = LossFn {
-    dx: &|predicted, actual| {
+    dx: &|actual, expected| {
         actual
             .iter()
-            .zip(predicted.iter())
-            .map(|(actual_val, predicted_val)| {
-                (predicted_val - actual_val) * 2.0 / actual.len() as f64
+            .zip(expected.iter())
+            .map(|(actual_val, expected_val)| {
+                (actual_val - expected_val) * 2.0 / actual.len() as f64
             })
             .collect()
     },
-    fx: &|predicted, actual| {
-        let sum = actual
+    fx: &|actual, expected| {
+        actual
             .iter()
-            .zip(predicted.iter())
-            .fold(0.0, |val, (&actual_val, &predicted_val)| {
-                val + (actual_val - predicted_val).powi(2)
-            });
-        sum / (actual.len() as f64)
+            .zip(expected.iter())
+            .fold(0.0, |val, (&actual_val, &expected_val)| {
+                val + (expected_val - actual_val).powi(2)
+            })
+            / (actual.len() as f64)
     },
 };
