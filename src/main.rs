@@ -1,13 +1,16 @@
 ﻿#![allow(dead_code)]
 
-use crate::bin_digits_network::bin_digit_network;
+extern crate core;
+extern crate openblas_src;
 
-pub mod digits_network;
+use crate::digits_network::digit_network;
+
 mod bin_digits_network;
+pub mod digits_network;
 mod nural;
 mod utils;
 mod xor_network;
 
 fn main() {
-    bin_digit_network()
+    digit_network()
 }

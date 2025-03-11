@@ -1,19 +1,23 @@
-﻿use std::any::Any;
-use serde::{Deserialize, Serialize};
-use crate::nural::nural_network_layer::NuralNetworkLayer;
-use crate::utils::matrix::Matrix;
+﻿use crate::nural::nural_network_layer::NuralNetworkLayer;
+use ndarray::Array2;
+use rand::Rng;
+use serde::de::{MapAccess, Visitor};
+use serde::ser::SerializeStruct;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::any::Any;
+use std::fmt;
 
-#[derive(Deserialize, Serialize)]
 pub struct TransformLayer {
-    bias: Matrix,
-    weights: Matrix,
+    bias: Array2<f64>,
+    weights: Array2<f64>,
 }
 
 impl TransformLayer {
     pub fn new(inputs: usize, outputs: usize) -> TransformLayer {
+        let mut rng = rand::rng();
         TransformLayer {
-            bias: Matrix::rnd(outputs, 1),
-            weights: Matrix::rnd(outputs, inputs),
+            bias: Array2::from_shape_fn((outputs, 1), |_| rng.random_range(-2.0..2.0)),
+            weights: Array2::from_shape_fn((outputs, inputs), |_| rng.random_range(-2.0..2.0)),
         }
     }
 }
@@ -24,20 +28,78 @@ impl NuralNetworkLayer for TransformLayer {
     }
 
     fn backward(&mut self, input: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64> {
-        let output_gradient_mx = Matrix::from(&output_gradient).transpose();
-        let weights_gradient_mx = output_gradient_mx.mul(&Matrix::from(&input));
-        let input_gradient_mx = self.weights.transpose().mul(&output_gradient_mx);
+        let output_gradient_vec =
+            Array2::from_shape_vec((output_gradient.len(), 1), output_gradient.to_vec()).unwrap();
+        let input_vec = Array2::from_shape_vec((input.len(), 1), input.to_vec()).unwrap();
+        let weights_gradient_mx = output_gradient_vec.dot(&input_vec.t());
+        let input_gradient_mx = self.weights.t().dot(&output_gradient_vec);
 
-        self.weights = self.weights.sub(&weights_gradient_mx.scale(learning_rate));
-        self.bias = self.bias.sub(&output_gradient_mx.scale(learning_rate));
+        self.weights = &self.weights - &weights_gradient_mx * learning_rate;
+        self.bias = &self.bias - output_gradient_vec * learning_rate;
 
-        input_gradient_mx.data
+        let (input_gradient, _) = input_gradient_mx.into_raw_vec_and_offset();
+        input_gradient
     }
 
     fn forward(&self, input: &[f64]) -> Vec<f64> {
-        self.weights
-            .mul(&Matrix::from(&input).transpose())
-            .add(&self.bias)
-            .data
+        let input_vec = Array2::from_shape_vec((input.len(), 1), input.to_vec()).unwrap();
+        let (output, _) = (&self.weights.dot(&input_vec) + &self.bias).into_raw_vec_and_offset();
+        output
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+struct TransformLayerData {
+    bias: Vec<f64>,
+    bias_shape: [usize; 2],
+    weights: Vec<f64>,
+    weights_shape: [usize; 2],
+}
+
+impl Serialize for TransformLayer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let (bias, _) = self.bias.clone().into_raw_vec_and_offset();
+        let (weights, _) = self.weights.clone().into_raw_vec_and_offset();
+        let data = TransformLayerData {
+            bias,
+            bias_shape: self.bias.shape()[0..=1].try_into().unwrap(),
+            weights,
+            weights_shape: self.weights.shape()[0..=1].try_into().unwrap(),
+        };
+
+        serializer.serialize_newtype_struct("Data", &data)
+    }
+}
+
+impl<'a> Deserialize<'a> for TransformLayer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'a>,
+    {
+        struct DataVisitor;
+        impl<'a> Visitor<'a> for DataVisitor {
+            type Value = TransformLayerData;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("Data")
+            }
+
+            fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+            where
+                D: Deserializer<'a>,
+            {
+                let data = TransformLayerData::deserialize(deserializer)?;
+                Ok(data)
+            }
+        }
+
+        let data = deserializer.deserialize_newtype_struct("Data", DataVisitor)?;
+        Ok(TransformLayer {
+            bias: Array2::from_shape_vec(data.bias_shape, data.bias).unwrap(),
+            weights: Array2::from_shape_vec(data.weights_shape, data.weights).unwrap(),
+        })
     }
 }

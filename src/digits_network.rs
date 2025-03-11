@@ -9,7 +9,7 @@ pub const DIGIT_COUNT: usize = 1000;
 pub const DIGIT_SIZE: usize = 28;
 pub const DIGIT_BUFFER_SIZE: usize = DIGIT_SIZE.pow(2);
 
-fn digit_network() {
+pub fn digit_network() {
     let digits = [
         get_digits("./data/data0.bin"),
         get_digits("./data/data1.bin"),
@@ -23,7 +23,7 @@ fn digit_network() {
         get_digits("./data/data9.bin"),
     ];
 
-    learn(&digits);
+    // learn(&digits);
 
     let nural_network = NuralNetwork::load_file("./data/digits.tnn").unwrap();
 
@@ -86,7 +86,7 @@ fn learn(digits: &[Vec<Vec<u8>>; 10]) {
         .shuffle()
         .collect::<Vec<_>>();
 
-    nural_network.train(data.as_slice(), 20);
+    nural_network.train(data.as_slice(), 100);
     nural_network.save_file("./data/digits.tnn").unwrap();
 }
 

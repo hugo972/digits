@@ -5,7 +5,7 @@ use crate::nural::transform_layer::TransformLayer;
 use crate::utils::shuffle_iter::ShuffleIterExt;
 
 pub fn bin_digit_network() {
-    let _bin_digits = [
+    let bin_digits = [
         get_bin_digits("./data/data0.bin"),
         get_bin_digits("./data/data1.bin"),
         get_bin_digits("./data/data2.bin"),
@@ -18,7 +18,7 @@ pub fn bin_digit_network() {
         get_bin_digits("./data/data9.bin"),
     ];
 
-    //learn(&bin_digits);
+    learn(&bin_digits);
     //test_random(&bin_digits);
     test_concrete();
 }

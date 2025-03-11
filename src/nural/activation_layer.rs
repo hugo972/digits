@@ -1,8 +1,7 @@
-﻿use std::any::Any;
-use serde::{Deserialize, Serialize};
-use crate::nural::activation_fns::*;
+﻿use crate::nural::activation_fns::*;
 use crate::nural::nural_network_layer::NuralNetworkLayer;
-use crate::utils::matrix::Matrix;
+use serde::{Deserialize, Serialize};
+use std::any::Any;
 
 #[derive(Deserialize, Serialize)]
 pub struct ActivationLayer {
@@ -41,9 +40,10 @@ impl NuralNetworkLayer for ActivationLayer {
         output_gradient: &[f64],
         _learning_rate: f64,
     ) -> Vec<f64> {
-        Matrix::from(&output_gradient)
-            .dot_mul(&Matrix::from(input).apply(self.activation_fn().dx))
-            .data
+        input.iter()
+            .zip(output_gradient.iter())
+            .map(|(input_val, output_gradient_val)| (self.activation_fn().dx)(*input_val) * *output_gradient_val)
+            .collect()
     }
 
     fn forward(&self, input: &[f64]) -> Vec<f64> {

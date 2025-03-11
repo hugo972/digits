@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+openblas-src = { version = "0.10.11", features = ["system"] }
 nannou = "0.19.0"
+ndarray = "0.16.1"
 pixel-canvas = "0.2.3"
 rand = "0.9.0-beta.3"
 serde = { version = "1.0.217", features = ["derive"] }
