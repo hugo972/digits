@@ -1,6 +1,6 @@
 ﻿use crate::nural::activation_layer::{ActivationLayer, ActivationLayerKind};
 use crate::nural::nural_network::{NuralNetwork, NuralNetworkLossKind};
-use crate::nural::transform_layer::TransformLayer;
+use crate::nural::dense_layer::DenseLayer;
 
 pub fn xor_network() {
     // learn();
@@ -18,9 +18,9 @@ pub fn xor_network() {
 fn learn() {
     let mut nural_network = NuralNetwork::new(
         vec![
-            Box::new(TransformLayer::new(2, 3)),
+            Box::new(DenseLayer::new(2, 3)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
-            Box::new(TransformLayer::new(3, 2)),
+            Box::new(DenseLayer::new(3, 2)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
         ],
         0.1,

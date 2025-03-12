@@ -1,33 +1,38 @@
 ﻿use crate::nural::nural_network_layer::NuralNetworkLayer;
 use ndarray::Array2;
 use rand::Rng;
-use serde::de::{MapAccess, Visitor};
-use serde::ser::SerializeStruct;
+use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::any::Any;
 use std::fmt;
 
-pub struct TransformLayer {
+pub struct DenseLayer {
     bias: Array2<f64>,
     weights: Array2<f64>,
 }
 
-impl TransformLayer {
-    pub fn new(inputs: usize, outputs: usize) -> TransformLayer {
+impl DenseLayer {
+    pub fn new(inputs: usize, outputs: usize) -> DenseLayer {
         let mut rng = rand::rng();
-        TransformLayer {
-            bias: Array2::from_shape_fn((outputs, 1), |_| rng.random_range(-2.0..2.0)),
-            weights: Array2::from_shape_fn((outputs, inputs), |_| rng.random_range(-2.0..2.0)),
+        DenseLayer {
+            bias: Array2::from_shape_fn((outputs, 1), |_| rng.random_range(-1.0..1.0)),
+            weights: Array2::from_shape_fn((outputs, inputs), |_| rng.random_range(-1.0..1.0)),
         }
     }
 }
 
-impl NuralNetworkLayer for TransformLayer {
+impl NuralNetworkLayer for DenseLayer {
     fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn backward(&mut self, input: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64> {
+    fn backward(
+        &mut self,
+        input: &[f64],
+        _output: &[f64],
+        output_gradient: &[f64],
+        learning_rate: f64,
+    ) -> Vec<f64> {
         let output_gradient_vec =
             Array2::from_shape_vec((output_gradient.len(), 1), output_gradient.to_vec()).unwrap();
         let input_vec = Array2::from_shape_vec((input.len(), 1), input.to_vec()).unwrap();
@@ -49,21 +54,21 @@ impl NuralNetworkLayer for TransformLayer {
 }
 
 #[derive(Deserialize, Serialize)]
-struct TransformLayerData {
+struct DenseLayerData {
     bias: Vec<f64>,
     bias_shape: [usize; 2],
     weights: Vec<f64>,
     weights_shape: [usize; 2],
 }
 
-impl Serialize for TransformLayer {
+impl Serialize for DenseLayer {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         let (bias, _) = self.bias.clone().into_raw_vec_and_offset();
         let (weights, _) = self.weights.clone().into_raw_vec_and_offset();
-        let data = TransformLayerData {
+        let data = DenseLayerData {
             bias,
             bias_shape: self.bias.shape()[0..=1].try_into().unwrap(),
             weights,
@@ -74,14 +79,14 @@ impl Serialize for TransformLayer {
     }
 }
 
-impl<'a> Deserialize<'a> for TransformLayer {
+impl<'a> Deserialize<'a> for DenseLayer {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'a>,
     {
         struct DataVisitor;
         impl<'a> Visitor<'a> for DataVisitor {
-            type Value = TransformLayerData;
+            type Value = DenseLayerData;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("Data")
@@ -91,13 +96,13 @@ impl<'a> Deserialize<'a> for TransformLayer {
             where
                 D: Deserializer<'a>,
             {
-                let data = TransformLayerData::deserialize(deserializer)?;
+                let data = DenseLayerData::deserialize(deserializer)?;
                 Ok(data)
             }
         }
 
         let data = deserializer.deserialize_newtype_struct("Data", DataVisitor)?;
-        Ok(TransformLayer {
+        Ok(DenseLayer {
             bias: Array2::from_shape_vec(data.bias_shape, data.bias).unwrap(),
             weights: Array2::from_shape_vec(data.weights_shape, data.weights).unwrap(),
         })

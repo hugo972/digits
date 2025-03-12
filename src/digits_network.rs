@@ -1,9 +1,10 @@
 ﻿use crate::nural::activation_layer::{ActivationLayer, ActivationLayerKind};
 use crate::nural::nural_network::{NuralNetwork, NuralNetworkLossKind};
-use crate::nural::transform_layer::TransformLayer;
+use crate::nural::dense_layer::DenseLayer;
 use crate::utils::shuffle_iter::ShuffleIterExt;
 use std::fs::File;
 use std::io::Read;
+use crate::nural::softmax_layer::SoftmaxLayer;
 
 pub const DIGIT_COUNT: usize = 1000;
 pub const DIGIT_SIZE: usize = 28;
@@ -23,7 +24,7 @@ pub fn digit_network() {
         get_digits("./data/data9.bin"),
     ];
 
-    // learn(&digits);
+    learn(&digits);
 
     let nural_network = NuralNetwork::load_file("./data/digits.tnn").unwrap();
 
@@ -52,12 +53,15 @@ pub fn digit_network() {
 fn learn(digits: &[Vec<Vec<u8>>; 10]) {
     let mut nural_network = NuralNetwork::new(
         vec![
-            Box::new(TransformLayer::new(28 * 28, 40)),
+            Box::new(DenseLayer::new(28 * 28, 128)),
+            Box::new(ActivationLayer::new(ActivationLayerKind::ReLu)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
-            Box::new(TransformLayer::new(40, 10)),
+            Box::new(DenseLayer::new(128, 10)),
+            Box::new(ActivationLayer::new(ActivationLayerKind::ReLu)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
+//            Box::new(SoftmaxLayer::new()),
         ],
-        0.1,
+        0.01,
         NuralNetworkLossKind::Mse,
     );
 

@@ -37,6 +37,7 @@ impl NuralNetworkLayer for ActivationLayer {
     fn backward(
         &mut self,
         input: &[f64],
+        _output: &[f64],
         output_gradient: &[f64],
         _learning_rate: f64,
     ) -> Vec<f64> {

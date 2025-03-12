@@ -1,7 +1,7 @@
 ﻿use crate::digits_network::get_digits;
 use crate::nural::activation_layer::{ActivationLayer, ActivationLayerKind};
 use crate::nural::nural_network::{NuralNetwork, NuralNetworkLossKind};
-use crate::nural::transform_layer::TransformLayer;
+use crate::nural::dense_layer::DenseLayer;
 use crate::utils::shuffle_iter::ShuffleIterExt;
 
 pub fn bin_digit_network() {
@@ -26,11 +26,11 @@ pub fn bin_digit_network() {
 fn learn(bin_digits: &[Vec<[i32; 28]>; 10]) {
     let mut nural_network = NuralNetwork::new(
         vec![
-            Box::new(TransformLayer::new(28, 28 * 28)),
+            Box::new(DenseLayer::new(28, 28 * 28)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
-            Box::new(TransformLayer::new(28 * 28, 40)),
+            Box::new(DenseLayer::new(28 * 28, 40)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
-            Box::new(TransformLayer::new(40, 10)),
+            Box::new(DenseLayer::new(40, 10)),
             Box::new(ActivationLayer::new(ActivationLayerKind::Tanh)),
         ],
         0.1,

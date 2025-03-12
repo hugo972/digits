@@ -1,14 +1,15 @@
 ﻿use crate::nural::activation_layer::ActivationLayer;
-use crate::nural::transform_layer::TransformLayer;
+use crate::nural::dense_layer::DenseLayer;
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeStruct;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::any::{Any, TypeId};
 use std::fmt;
+use crate::nural::softmax_layer::SoftmaxLayer;
 
 pub trait NuralNetworkLayer {
     fn as_any(&self) -> &dyn Any;
-    fn backward(&mut self, input: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64>;
+    fn backward(&mut self, input: &[f64], output: &[f64], output_gradient: &[f64], learning_rate: f64) -> Vec<f64>;
     fn forward(&self, input: &[f64]) -> Vec<f64>;
 }
 
@@ -24,10 +25,15 @@ impl Serialize for Box<dyn NuralNetworkLayer> {
             state.serialize_field("type", "ActivationLayer")?;
             state.serialize_field("data", layer.downcast_ref::<ActivationLayer>().unwrap())?;
             state.end()
-        } else if layer_type_id == TypeId::of::<TransformLayer>() {
+        } else if layer_type_id == TypeId::of::<DenseLayer>() {
             let mut state = serializer.serialize_struct("Layer", 2)?;
-            state.serialize_field("type", "TransformLayer")?;
-            state.serialize_field("data", layer.downcast_ref::<TransformLayer>().unwrap())?;
+            state.serialize_field("type", "DenseLayer")?;
+            state.serialize_field("data", layer.downcast_ref::<DenseLayer>().unwrap())?;
+            state.end()
+        } else if layer_type_id == TypeId::of::<SoftmaxLayer>() {
+            let mut state = serializer.serialize_struct("Layer", 2)?;
+            state.serialize_field("type", "SoftmaxLayer")?;
+            state.serialize_field("data", layer.downcast_ref::<SoftmaxLayer>().unwrap())?;
             state.end()
         } else {
             Err(serde::ser::Error::custom("Unknown Layer type"))
@@ -67,8 +73,11 @@ impl<'a> Deserialize<'a> for Box<dyn NuralNetworkLayer> {
                     "ActivationLayer" => map
                         .next_value::<ActivationLayer>()
                         .map(|l| Box::new(l) as Box<dyn NuralNetworkLayer>),
-                    "TransformLayer" => map
-                        .next_value::<TransformLayer>()
+                    "DenseLayer" => map
+                        .next_value::<DenseLayer>()
+                        .map(|l| Box::new(l) as Box<dyn NuralNetworkLayer>),
+                    "SoftmaxLayer" => map
+                        .next_value::<SoftmaxLayer>()
                         .map(|l| Box::new(l) as Box<dyn NuralNetworkLayer>),
                     _ => Err(de::Error::custom("Unknown Layer type")),
                 }

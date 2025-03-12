@@ -54,13 +54,13 @@ impl NuralNetwork {
                 error += (self.loss_fn().fx)(&output, &expected_output);
 
                 let mut gradient = (self.loss_fn().dx)(&output, &expected_output);
-                for (layer, input) in self
-                    .layers
-                    .iter_mut()
-                    .rev()
-                    .zip(outputs.iter().rev().skip(1))
-                {
-                    gradient = layer.backward(input, &gradient, self.learning_rate);
+                for (layer_index, layer) in self.layers.iter_mut().enumerate().rev() {
+                    gradient = layer.backward(
+                        &outputs[layer_index],
+                        &outputs[layer_index + 1],
+                        &gradient,
+                        self.learning_rate,
+                    );
                 }
             }
 
