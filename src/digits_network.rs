@@ -4,7 +4,6 @@ use crate::nural::dense_layer::DenseLayer;
 use crate::utils::shuffle_iter::ShuffleIterExt;
 use std::fs::File;
 use std::io::Read;
-use crate::nural::softmax_layer::SoftmaxLayer;
 
 pub const DIGIT_COUNT: usize = 1000;
 pub const DIGIT_SIZE: usize = 28;
